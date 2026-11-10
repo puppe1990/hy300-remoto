@@ -32,6 +32,10 @@ test('viagem satura em 120 e 240', () => {
   assert.equal(swipeTravel(60), 240)
 })
 
+test('viagem linear no meio da faixa', () => {
+  assert.equal(swipeTravel(40), 160)
+})
+
 test('roda pra baixo no centro sobe o dedo', () => {
   const swipe = wheelToSwipe(30, CENTER, HY300_SCREEN)
   assert.deepEqual(swipe, {
@@ -43,6 +47,11 @@ test('roda pra baixo no centro sobe o dedo', () => {
   })
 })
 
+test('roda pra cima no centro desce o dedo', () => {
+  const swipe = wheelToSwipe(-30, CENTER, HY300_SCREEN)
+  assert.equal(swipe.y2, CENTER.y + 120)
+})
+
 test('flick satura a viagem em 240', () => {
   const swipe = wheelToSwipe(80, CENTER, HY300_SCREEN)
   assert.equal(swipe.y2, CENTER.y - 240)
@@ -51,6 +60,10 @@ test('flick satura a viagem em 240', () => {
 
 test('origem ausente é null', () => {
   assert.equal(wheelToSwipe(30, null, HY300_SCREEN), null)
+})
+
+test('delta zero não manda swipe', () => {
+  assert.equal(wheelToSwipe(0, CENTER, HY300_SCREEN), null)
 })
 
 test('borda de cima não swipe pra cima', () => {
