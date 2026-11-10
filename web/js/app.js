@@ -2,6 +2,13 @@ import { fromEventCode, keycode } from './keys.mjs'
 import { mapTap } from './tap.mjs'
 import { parseHost } from './host.mjs'
 import { PREVIEW_INTERVAL_MS, releasePreviewLock, statusCopy, takePreviewLock } from './preview.mjs'
+import {
+  SWIPE_COALESCE_MS,
+  normalizeWheelDelta,
+  releaseSwipeLock,
+  takeSwipeLock,
+  wheelToSwipe,
+} from './swipe.mjs'
 
 const invoke = window.__TAURI__?.core?.invoke
 
@@ -13,6 +20,8 @@ const hostForm = document.getElementById('host-form')
 
 let screen = { width: 1280, height: 720 }
 const previewLock = { inFlight: false }
+const swipeLock = { inFlight: false }
+const swipeBurst = { accum: 0, clientX: 0, clientY: 0, timer: 0 }
 
 function setStatus(kind, detail) {
   statusEl.textContent = statusCopy(kind, detail)
@@ -39,6 +48,56 @@ function onPreviewClick(event) {
     () => setStatus('connected'),
     (err) => setStatus('error', String(err)),
   )
+}
+
+function onPreviewWheel(event) {
+  event.preventDefault()
+  const norm = normalizeWheelDelta(event.deltaY, event.deltaMode)
+  if (norm == null) return
+  swipeBurst.clientX = event.clientX
+  swipeBurst.clientY = event.clientY
+  if (norm !== 0) swipeBurst.accum += norm
+  if (!swipeBurst.timer) {
+    swipeBurst.timer = window.setTimeout(flushSwipe, SWIPE_COALESCE_MS)
+  }
+}
+
+function flushSwipe() {
+  swipeBurst.timer = 0
+  void sendAccumulatedSwipe()
+}
+
+function plannedFromBurst() {
+  if (swipeBurst.accum === 0) return null
+  const rect = wrapEl.getBoundingClientRect()
+  const origin = mapTap(swipeBurst.clientX - rect.left, swipeBurst.clientY - rect.top, rect, screen)
+  if (!origin) {
+    swipeBurst.accum = 0
+    return null
+  }
+  const planned = wheelToSwipe(swipeBurst.accum, origin, screen)
+  if (!planned) {
+    swipeBurst.accum = 0
+    return null
+  }
+  return planned
+}
+
+async function sendAccumulatedSwipe() {
+  if (!invoke) return
+  const planned = plannedFromBurst()
+  if (!planned) return
+  if (!takeSwipeLock(swipeLock)) return
+  swipeBurst.accum = 0
+  try {
+    await invoke('send_swipe', planned)
+    setStatus('connected')
+  } catch (err) {
+    setStatus('error', String(err))
+  } finally {
+    releaseSwipeLock(swipeLock)
+    await sendAccumulatedSwipe()
+  }
 }
 
 function onKeyDown(event) {
@@ -114,5 +173,6 @@ document.querySelectorAll('[data-key]').forEach((btn) => {
   btn.addEventListener('click', () => sendKey(btn.dataset.key))
 })
 wrapEl.addEventListener('click', onPreviewClick)
+wrapEl.addEventListener('wheel', onPreviewWheel, { passive: false })
 window.addEventListener('keydown', onKeyDown)
 boot()
