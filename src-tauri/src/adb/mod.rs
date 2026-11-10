@@ -1,10 +1,9 @@
 //! ADB CLI. Testes cobrem argv; o binário não roda na CI.
 
+mod run;
+
 use std::cell::RefCell;
-use std::io::Read;
-use std::process::{Command, Stdio};
-use std::thread;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 pub const SCREENCAP_TIMEOUT: Duration = Duration::from_secs(4);
 
@@ -21,6 +20,14 @@ impl AdbError {
     }
 }
 
+/// CLI `adb` behind this trait so tests use [`FakeAdb`].
+///
+/// ```
+/// use hy300_remoto::adb::{AdbDevice, FakeAdb};
+/// let fake = FakeAdb::default();
+/// fake.keyevent(23).unwrap();
+/// assert_eq!(*fake.keys.borrow(), vec![23]);
+/// ```
 pub trait AdbDevice {
     fn connect(&mut self) -> Result<(), AdbError>;
     fn keyevent(&self, code: i32) -> Result<(), AdbError>;
@@ -79,84 +86,7 @@ impl CliAdb {
     }
 
     fn run(&self, args: &[String]) -> Result<Vec<u8>, AdbError> {
-        self.run_limited(args, None)
-    }
-
-    fn run_limited(&self, args: &[String], timeout: Option<Duration>) -> Result<Vec<u8>, AdbError> {
-        let mut child = Command::new(&self.adb_bin)
-            .args(args)
-            .stdin(Stdio::null())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .map_err(|e| {
-                AdbError::new(format!(
-                    "não executou {} {}: {e}",
-                    self.adb_bin,
-                    args.join(" ")
-                ))
-            })?;
-        let mut stdout_pipe = child
-            .stdout
-            .take()
-            .ok_or_else(|| AdbError::new("adb sem stdout"))?;
-        let mut stderr_pipe = child
-            .stderr
-            .take()
-            .ok_or_else(|| AdbError::new("adb sem stderr"))?;
-        let stdout_h = thread::spawn(move || {
-            let mut buf = Vec::new();
-            stdout_pipe.read_to_end(&mut buf).map(|_| buf)
-        });
-        let stderr_h = thread::spawn(move || {
-            let mut buf = Vec::new();
-            stderr_pipe.read_to_end(&mut buf).map(|_| buf)
-        });
-        let status = match timeout {
-            None => child
-                .wait()
-                .map_err(|e| AdbError::new(format!("wait {}: {e}", args.join(" "))))?,
-            Some(limit) => {
-                let start = Instant::now();
-                loop {
-                    match child.try_wait() {
-                        Ok(Some(st)) => break st,
-                        Ok(None) if start.elapsed() >= limit => {
-                            let _ = child.kill();
-                            let _ = child.wait();
-                            return Err(AdbError::new(format!(
-                                "{} {} estourou {}s",
-                                self.adb_bin,
-                                args.join(" "),
-                                limit.as_secs()
-                            )));
-                        }
-                        Ok(None) => thread::sleep(Duration::from_millis(20)),
-                        Err(e) => {
-                            return Err(AdbError::new(format!("wait {}: {e}", args.join(" "))));
-                        }
-                    }
-                }
-            }
-        };
-        let stdout = stdout_h
-            .join()
-            .map_err(|_| AdbError::new("stdout join"))?
-            .map_err(|e| AdbError::new(format!("stdout: {e}")))?;
-        let stderr = stderr_h
-            .join()
-            .map_err(|_| AdbError::new("stderr join"))?
-            .map_err(|e| AdbError::new(format!("stderr: {e}")))?;
-        if !status.success() {
-            return Err(AdbError::new(format!(
-                "{} {} saiu {}: {}",
-                self.adb_bin,
-                args.join(" "),
-                status,
-                String::from_utf8_lossy(&stderr).trim()
-            )));
-        }
-        Ok(stdout)
+        run::run_limited(&self.adb_bin, args, None)
     }
 }
 
@@ -174,7 +104,11 @@ impl AdbDevice for CliAdb {
     }
 
     fn screencap_png(&self) -> Result<Vec<u8>, AdbError> {
-        self.run_limited(&screencap_args(&self.host), Some(SCREENCAP_TIMEOUT))
+        run::run_limited(
+            &self.adb_bin,
+            &screencap_args(&self.host),
+            Some(SCREENCAP_TIMEOUT),
+        )
     }
 }
 

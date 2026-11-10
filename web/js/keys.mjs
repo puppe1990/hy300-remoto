@@ -1,5 +1,7 @@
-/** Dual of src-tauri/src/keys.rs — keep goldens in both suites. */
-
+/**
+ * Dual of `src-tauri/src/keys.rs` — keep goldens in both suites.
+ * AOSP KeyEvent codes for pad ids.
+ */
 export const KEYCODES = {
   up: 19,
   down: 20,
@@ -28,15 +30,36 @@ const EVENT_TO_PAD = {
   NumpadSubtract: 'vol_down',
 }
 
+/**
+ * Pad id from a `[data-key]` value, or null if unknown.
+ * @param {string} id
+ * @returns {string|null}
+ * @example
+ * fromPad('ok') // "ok"
+ */
 export function fromPad(id) {
   return Object.hasOwn(KEYCODES, id) ? id : null
 }
 
+/**
+ * AOSP keycode for a pad id, or null if unknown.
+ * @param {string} id
+ * @returns {number|null}
+ * @example
+ * keycode('ok') // 23
+ */
 export function keycode(id) {
   const pad = fromPad(id)
   return pad ? KEYCODES[pad] : null
 }
 
+/**
+ * Pad id from a KeyboardEvent.code, or null if unbound.
+ * @param {string} code
+ * @returns {string|null}
+ * @example
+ * fromEventCode('ArrowUp') // "up"
+ */
 export function fromEventCode(code) {
   return EVENT_TO_PAD[code] ?? null
 }
