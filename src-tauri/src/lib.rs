@@ -3,4 +3,5 @@ pub mod adb;
 pub mod host;
 pub mod keys;
 pub mod preview;
+pub mod swipe;
 pub mod tap;
