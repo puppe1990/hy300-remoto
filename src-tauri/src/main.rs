@@ -18,13 +18,13 @@ struct AdbSession {
 impl AdbSession {
     fn current_host(&self) -> Result<String, String> {
         self.host.lock().map(|h| h.clone()).map_err(|_| {
-            "host mutex poisoned; expected unpoisoned Mutex<String> with host:porta".into()
+            "host mutex poisoned; expected unpoisoned Mutex<String> with host:porta".to_string()
         })
     }
 
     fn set_current(&self, host: String) -> Result<(), String> {
         *self.host.lock().map_err(|_| {
-            "host mutex poisoned; expected unpoisoned Mutex<String> with host:porta".into()
+            "host mutex poisoned; expected unpoisoned Mutex<String> with host:porta".to_string()
         })? = host;
         Ok(())
     }
