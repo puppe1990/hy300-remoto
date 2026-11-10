@@ -32,6 +32,7 @@ pub trait AdbDevice {
     fn connect(&mut self) -> Result<(), AdbError>;
     fn keyevent(&self, code: i32) -> Result<(), AdbError>;
     fn tap(&self, x: i32, y: i32) -> Result<(), AdbError>;
+    fn swipe(&self, x1: i32, y1: i32, x2: i32, y2: i32, duration_ms: u32) -> Result<(), AdbError>;
     fn screencap_png(&self) -> Result<Vec<u8>, AdbError>;
 }
 
@@ -59,6 +60,21 @@ pub fn tap_args(host: &str, x: i32, y: i32) -> Vec<String> {
         "tap".into(),
         x.to_string(),
         y.to_string(),
+    ]
+}
+
+pub fn swipe_args(host: &str, x1: i32, y1: i32, x2: i32, y2: i32, duration_ms: u32) -> Vec<String> {
+    vec![
+        "-s".into(),
+        host.into(),
+        "shell".into(),
+        "input".into(),
+        "swipe".into(),
+        x1.to_string(),
+        y1.to_string(),
+        x2.to_string(),
+        y2.to_string(),
+        duration_ms.to_string(),
     ]
 }
 
@@ -103,6 +119,11 @@ impl AdbDevice for CliAdb {
         self.run(&tap_args(&self.host, x, y)).map(|_| ())
     }
 
+    fn swipe(&self, x1: i32, y1: i32, x2: i32, y2: i32, duration_ms: u32) -> Result<(), AdbError> {
+        self.run(&swipe_args(&self.host, x1, y1, x2, y2, duration_ms))
+            .map(|_| ())
+    }
+
     fn screencap_png(&self) -> Result<Vec<u8>, AdbError> {
         run::run_limited(
             &self.adb_bin,
@@ -118,6 +139,7 @@ pub struct FakeAdb {
     pub connected: bool,
     pub keys: RefCell<Vec<i32>>,
     pub taps: RefCell<Vec<(i32, i32)>>,
+    pub swipes: RefCell<Vec<(i32, i32, i32, i32, u32)>>,
     pub png: Vec<u8>,
     pub fail: Option<String>,
 }
@@ -144,6 +166,14 @@ impl AdbDevice for FakeAdb {
             return Err(AdbError::new(msg.clone()));
         }
         self.taps.borrow_mut().push((x, y));
+        Ok(())
+    }
+
+    fn swipe(&self, x1: i32, y1: i32, x2: i32, y2: i32, duration_ms: u32) -> Result<(), AdbError> {
+        if let Some(msg) = &self.fail {
+            return Err(AdbError::new(msg.clone()));
+        }
+        self.swipes.borrow_mut().push((x1, y1, x2, y2, duration_ms));
         Ok(())
     }
 
@@ -187,6 +217,13 @@ mod tests {
         assert_eq!(tap[4], "tap");
         assert_eq!(tap[5], x.to_string());
         assert_eq!(tap[6], y.to_string());
+        let swipe = swipe_args(&host, 640, 360, 640, 240, 200);
+        assert_eq!(swipe[4], "swipe");
+        assert_eq!(swipe[5], "640");
+        assert_eq!(swipe[6], "360");
+        assert_eq!(swipe[7], "640");
+        assert_eq!(swipe[8], "240");
+        assert_eq!(swipe[9], "200");
         assert_eq!(screencap_args(&host)[3], "screencap");
         assert_eq!(screencap_args(&host)[4], "-p");
     }
@@ -199,8 +236,10 @@ mod tests {
         };
         fake.keyevent(23).unwrap();
         fake.tap(10, 20).unwrap();
+        fake.swipe(640, 360, 640, 240, 200).unwrap();
         assert_eq!(*fake.keys.borrow(), vec![23]);
         assert_eq!(*fake.taps.borrow(), vec![(10, 20)]);
+        assert_eq!(*fake.swipes.borrow(), vec![(640, 360, 640, 240, 200)]);
         assert_eq!(fake.screencap_png().unwrap()[1], b'P');
     }
 
