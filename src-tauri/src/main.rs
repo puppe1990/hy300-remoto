@@ -86,6 +86,26 @@ async fn send_tap(x: i32, y: i32, session: State<'_, AdbSession>) -> Result<(), 
 }
 
 #[tauri::command]
+async fn send_swipe(
+    x1: i32,
+    y1: i32,
+    x2: i32,
+    y2: i32,
+    duration_ms: u32,
+    session: State<'_, AdbSession>,
+) -> Result<(), String> {
+    let adb = session.adb()?;
+    adb_blocking(
+        move || {
+            adb.swipe(x1, y1, x2, y2, duration_ms)
+                .map_err(|e| e.message)
+        },
+        "adb",
+    )
+    .await
+}
+
+#[tauri::command]
 async fn preview_frame(session: State<'_, AdbSession>) -> Result<PreviewFrame, String> {
     let adb = session.adb()?;
     adb_blocking(
@@ -124,6 +144,7 @@ fn main() {
             connect_host,
             send_key,
             send_tap,
+            send_swipe,
             preview_frame
         ])
         .run(tauri::generate_context!())
