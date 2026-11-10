@@ -17,3 +17,15 @@ npm run dev
 ```
 
 `adb` precisa estar no PATH. Host padrão `192.168.15.4:3268`. Spec: `docs/superpowers/specs/2026-11-10-hy300-remoto-design.md`.
+
+```
+Mac window (web/)
+  preview 2 fps ──invoke──► AdbSession (main.rs)
+  D-pad / teclado              │
+                               ▼
+                         CliAdb : AdbDevice
+                               │
+                      adb -s host:3268
+                               ▼
+                    HY300 1280×720 (input / screencap)
+```

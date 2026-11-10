@@ -1,7 +1,17 @@
-/** Dual of src-tauri/src/tap.rs */
-
+/** Dual of `src-tauri/src/tap.rs`. Native HY300 size. */
 export const HY300_SCREEN = { width: 1280, height: 720 }
 
+/**
+ * Map a click in the preview box (`object-fit: contain`) to a projector pixel.
+ * Letterbox clicks return null.
+ * @param {number} clickX
+ * @param {number} clickY
+ * @param {{width: number, height: number}} preview
+ * @param {{width: number, height: number}} [screen]
+ * @returns {{x: number, y: number}|null}
+ * @example
+ * mapTap(640, 360, { width: 1280, height: 720 }) // { x: 640, y: 360 }
+ */
 export function mapTap(clickX, clickY, preview, screen = HY300_SCREEN) {
   if (preview.width <= 0 || preview.height <= 0 || screen.width === 0 || screen.height === 0) {
     return null

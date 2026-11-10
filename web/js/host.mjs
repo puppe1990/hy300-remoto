@@ -1,7 +1,13 @@
-/** Dual of src-tauri/src/host.rs parse_host */
-
+/** Dual of `src-tauri/src/host.rs` `parse_host`. Default is the live HY300 on this LAN. */
 export const DEFAULT_HOST = '192.168.15.4:3268'
 
+/**
+ * Parse `host:porta`. Empty, missing port, and out-of-range fail with the received value.
+ * @param {string} raw
+ * @returns {{ok: true, host: string} | {ok: false, error: string}}
+ * @example
+ * parseHost('192.168.15.4:3268') // { ok: true, host: '192.168.15.4:3268' }
+ */
 export function parseHost(raw) {
   const trimmed = String(raw ?? '').trim()
   if (!trimmed) {
