@@ -217,13 +217,21 @@ mod tests {
         assert_eq!(tap[4], "tap");
         assert_eq!(tap[5], x.to_string());
         assert_eq!(tap[6], y.to_string());
-        let swipe = swipe_args(&host, 640, 360, 640, 240, 200);
-        assert_eq!(swipe[4], "swipe");
-        assert_eq!(swipe[5], "640");
-        assert_eq!(swipe[6], "360");
-        assert_eq!(swipe[7], "640");
-        assert_eq!(swipe[8], "240");
-        assert_eq!(swipe[9], "200");
+        assert_eq!(
+            swipe_args(&host, 640, 360, 640, 240, 200),
+            vec![
+                "-s".into(),
+                host.clone(),
+                "shell".into(),
+                "input".into(),
+                "swipe".into(),
+                "640".into(),
+                "360".into(),
+                "640".into(),
+                "240".into(),
+                "200".into()
+            ]
+        );
         assert_eq!(screencap_args(&host)[3], "screencap");
         assert_eq!(screencap_args(&host)[4], "-p");
     }
@@ -251,6 +259,9 @@ mod tests {
         };
         let err = fake.connect().unwrap_err();
         assert!(err.message.contains("no devices"), "{}", err.message);
+        let err = fake.swipe(640, 360, 640, 240, 200).unwrap_err();
+        assert!(err.message.contains("no devices"), "{}", err.message);
+        assert!(fake.swipes.borrow().is_empty());
     }
 
     #[test]
