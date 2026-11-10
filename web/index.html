@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HY300 Remoto</title>
+    <link rel="stylesheet" href="./css/remote.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="bar">
+        <span class="brand">HY300</span>
+        <span class="status" id="status">conectando…</span>
+      </header>
+      <button type="button" class="preview-wrap" id="preview-wrap" aria-label="Tela do projetor">
+        <img id="preview" alt="" />
+      </button>
+      <div class="pad" role="group" aria-label="Controle">
+        <div class="dpad">
+          <span></span>
+          <button type="button" data-key="up" aria-label="Cima">▲</button>
+          <span></span>
+          <button type="button" data-key="left" aria-label="Esquerda">◀</button>
+          <button type="button" class="ok" data-key="ok">OK</button>
+          <button type="button" data-key="right" aria-label="Direita">▶</button>
+          <span></span>
+          <button type="button" data-key="down" aria-label="Baixo">▼</button>
+          <span></span>
+        </div>
+        <div class="row">
+          <button type="button" data-key="back">Voltar</button>
+          <button type="button" data-key="home">Home</button>
+          <button type="button" data-key="power">Power</button>
+        </div>
+        <div class="row vol">
+          <button type="button" data-key="vol_down">Vol −</button>
+          <span class="hint">volume</span>
+          <button type="button" data-key="vol_up">Vol +</button>
+        </div>
+      </div>
+      <form class="host-row" id="host-form">
+        <label>
+          Host
+          <input id="host" name="host" spellcheck="false" autocomplete="off" />
+        </label>
+        <button type="submit">Salvar</button>
+      </form>
+      <p class="hint keys-hint">setas · Enter · Esc · H · +/−</p>
+    </main>
+    <script type="module" src="./js/app.js"></script>
+  </body>
+</html>
