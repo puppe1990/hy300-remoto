@@ -5,6 +5,7 @@ Tauri 2 no Mac: preview + pad + teclado do projetor HY300 via ADB wireless. Iden
 ## Caveats
 
 - Host padrão `192.168.15.4:3268`. Gravado em `host.json` no config dir do app.
+- DNS sinkhole da LAN: `scripts/dnssink/` (`install.sh` / `update-hosts.sh` / `uninstall.sh`). Payload no HY300 em `/data/local/dnssink`. Não mexer em `daemon12138`. Testes do builder não falam com o projetor.
 - Preview é `screencap -p` a cada 500 ms, não scrcpy. Um frame por vez; `screencap` estoura em 4s (vídeo ~3,5s). Clique mapeia com `object-fit: contain` (letterbox ignora).
 - Trait `AdbDevice` / argv em `src-tauri/src/adb/mod.rs`; spawn+timeout em `adb/run.rs`. Testes não disparam o binário `adb` (só o caso do executável ausente e o timeout com um `sleep` fake).
 - Feature `desktop` (default) liga Tauri. CI: `cargo test --lib --no-default-features`. `build.rs` chama `tauri_build` só com `CARGO_FEATURE_DESKTOP`. Doctest de `AdbDevice` não roda em `--lib`; cubra com `FakeAdb`.
