@@ -704,27 +704,34 @@ mod tests {
         assert!(err.message.contains("23"), "{}", err.message);
     }
 
+    /// Write+chmod via a sibling then rename so Linux does not ETXTBSY on exec.
+    fn write_fake_adb(dir: &std::path::Path, script: &str) -> std::path::PathBuf {
+        fs::create_dir_all(dir).unwrap();
+        let bin = dir.join("adb");
+        let tmp = dir.join("adb.tmp");
+        fs::write(&tmp, script).unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perm = fs::metadata(&tmp).unwrap().permissions();
+            perm.set_mode(0o755);
+            fs::set_permissions(&tmp, perm).unwrap();
+        }
+        fs::rename(&tmp, &bin).unwrap();
+        bin
+    }
+
     #[test]
     fn screencap_png_encodes_raw_rgba_from_cli() {
         let dir = std::env::temp_dir().join(format!(
             "hy300-raw-adb-{}",
             (1u32..1_000_000u32).fake::<u32>()
         ));
-        fs::create_dir_all(&dir).unwrap();
-        let bin = dir.join("adb");
         // 1x1 Android 12 header + opaque red RGBA. printf octal keeps the script ASCII.
-        fs::write(
-            &bin,
+        let bin = write_fake_adb(
+            &dir,
             "#!/bin/sh\nprintf '\\1\\0\\0\\0\\1\\0\\0\\0\\1\\0\\0\\0\\1\\0\\0\\0\\377\\0\\0\\377'\n",
-        )
-        .unwrap();
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            let mut perm = fs::metadata(&bin).unwrap().permissions();
-            perm.set_mode(0o755);
-            fs::set_permissions(&bin, perm).unwrap();
-        }
+        );
         let adb = CliAdb {
             adb_bin: bin.to_string_lossy().into_owned(),
             host: "192.168.15.4:3268".into(),
@@ -744,16 +751,7 @@ mod tests {
                 .unwrap()
                 .as_nanos()
         ));
-        fs::create_dir_all(&dir).unwrap();
-        let bin = dir.join("adb");
-        fs::write(&bin, "#!/bin/sh\nsleep 30\nprintf 'too-late'\n").unwrap();
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            let mut perm = fs::metadata(&bin).unwrap().permissions();
-            perm.set_mode(0o755);
-            fs::set_permissions(&bin, perm).unwrap();
-        }
+        let bin = write_fake_adb(&dir, "#!/bin/sh\nsleep 30\nprintf 'too-late'\n");
         let adb = CliAdb {
             adb_bin: bin.to_string_lossy().into_owned(),
             host: "192.168.15.4:3268".into(),
