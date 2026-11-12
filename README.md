@@ -30,7 +30,7 @@ DNS sinkhole da LAN Puppe (dnsmasq de fábrica no HY300): spec `docs/superpowers
 ```
 Mac window (web/)
   preview 2 fps ──invoke──► AdbSession (main.rs)
-  D-pad / teclado              │
+  D-pad / teclado / brilho     │
                                ▼
                          CliAdb : AdbDevice
                                │
