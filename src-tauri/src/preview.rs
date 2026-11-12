@@ -33,8 +33,11 @@ pub fn status_copy(kind: &str, detail: Option<&str>) -> String {
         "connecting" => "conectando…".into(),
         "connected" => "ligado".into(),
         "disconnected" => "sem conexão".into(),
+        "off" => "desligado".into(),
         "error" => format!("falhou: {}", detail.unwrap_or("erro desconhecido")),
-        other => format!("falhou: status {other:?} não é connecting|connected|disconnected|error"),
+        other => {
+            format!("falhou: status {other:?} não é connecting|connected|disconnected|off|error")
+        }
     }
 }
 
@@ -84,6 +87,7 @@ mod tests {
         assert_eq!(status_copy("connecting", None), "conectando…");
         assert_eq!(status_copy("connected", None), "ligado");
         assert_eq!(status_copy("disconnected", None), "sem conexão");
+        assert_eq!(status_copy("off", None), "desligado");
         let detail: String = (8..20).fake();
         let copy = status_copy("error", Some(&detail));
         assert!(copy.starts_with("falhou: "), "{copy}");

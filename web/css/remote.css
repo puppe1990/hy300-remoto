@@ -22,7 +22,8 @@ body {
 }
 
 .shell {
-  max-width: 420px;
+  width: 100%;
+  max-width: 720px;
   margin: 0 auto;
   padding: 16px 16px 20px;
   display: flex;
@@ -57,12 +58,16 @@ body {
   display: block;
   width: 100%;
   aspect-ratio: 16 / 9;
+  min-height: 280px;
   padding: 0;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #1c1814;
   overflow: hidden;
   cursor: crosshair;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
 }
 
 .preview-wrap img {
@@ -71,6 +76,8 @@ body {
   height: 100%;
   object-fit: contain;
   background: #1c1814;
+  pointer-events: none;
+  -webkit-user-drag: none;
 }
 
 .preview-wrap img.is-on {
@@ -115,6 +122,15 @@ button.ok {
   font-weight: 700;
 }
 
+button.is-on {
+  background: #3a4a32;
+  color: var(--on);
+}
+
+.preview-wrap.is-mouse {
+  outline: 1px solid var(--on);
+}
+
 button:active {
   filter: brightness(1.15);
 }
@@ -123,6 +139,10 @@ button:active {
   align-self: center;
   font-size: 11px;
   color: var(--dim);
+}
+
+.vol button {
+  min-width: 4.5rem;
 }
 
 .host-row {

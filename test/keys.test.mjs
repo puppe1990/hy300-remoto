@@ -17,7 +17,10 @@ test('pad ids batem com os keycodes AOSP', () => {
   assert.equal(keycode('home'), 3)
   assert.equal(keycode('vol_up'), 24)
   assert.equal(keycode('vol_down'), 25)
+  assert.equal(keycode('mute'), 164)
   assert.equal(keycode('power'), 26)
+  assert.equal(keycode('rew'), 89)
+  assert.equal(keycode('ff'), 90)
 })
 
 test('event.code aponta para o mesmo pad', () => {
@@ -28,6 +31,9 @@ test('event.code aponta para o mesmo pad', () => {
   assert.equal(fromEventCode('KeyH'), 'home')
   assert.equal(fromEventCode('Equal'), 'vol_up')
   assert.equal(fromEventCode('Minus'), 'vol_down')
+  assert.equal(fromEventCode('KeyM'), 'mute')
+  assert.equal(fromEventCode('BracketLeft'), 'rew')
+  assert.equal(fromEventCode('BracketRight'), 'ff')
 })
 
 test('código e pad desconhecidos são ignorados', () => {

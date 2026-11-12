@@ -34,3 +34,29 @@ export function mapTap(clickX, clickY, preview, screen = HY300_SCREEN) {
     y: Math.min(screen.height - 1, Math.max(0, y)),
   }
 }
+
+/**
+ * Map against the painted <img> once it has size. Wrap is fallback.
+ * Reloading `src` each frame cancels `click`; use pointerdown.
+ *
+ * @param {{width: number, height: number}} wrap
+ * @param {{width: number, height: number}|null|undefined} img
+ * @returns {{width: number, height: number}}
+ * @example
+ * tapTargetBox({ width: 400, height: 300 }, { width: 400, height: 225 })
+ */
+export function tapTargetBox(wrap, img) {
+  if (img && img.width > 0 && img.height > 0) return img
+  return wrap
+}
+
+/**
+ * Primary pointer only (left click / finger).
+ * @param {number} button
+ * @returns {boolean}
+ * @example
+ * previewPointerIsPrimary(0) // true
+ */
+export function previewPointerIsPrimary(button) {
+  return button === 0
+}

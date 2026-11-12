@@ -11,7 +11,10 @@ pub enum RemoteKey {
     Home,
     VolumeUp,
     VolumeDown,
+    VolumeMute,
     Power,
+    Rewind,
+    FastForward,
 }
 
 pub fn keycode(key: RemoteKey) -> i32 {
@@ -25,7 +28,10 @@ pub fn keycode(key: RemoteKey) -> i32 {
         RemoteKey::Home => 3,
         RemoteKey::VolumeUp => 24,
         RemoteKey::VolumeDown => 25,
+        RemoteKey::VolumeMute => 164,
         RemoteKey::Power => 26,
+        RemoteKey::Rewind => 89,
+        RemoteKey::FastForward => 90,
     }
 }
 
@@ -40,7 +46,10 @@ pub fn from_pad(id: &str) -> Option<RemoteKey> {
         "home" => Some(RemoteKey::Home),
         "vol_up" => Some(RemoteKey::VolumeUp),
         "vol_down" => Some(RemoteKey::VolumeDown),
+        "mute" => Some(RemoteKey::VolumeMute),
         "power" => Some(RemoteKey::Power),
+        "rew" => Some(RemoteKey::Rewind),
+        "ff" => Some(RemoteKey::FastForward),
         _ => None,
     }
 }
@@ -56,6 +65,9 @@ pub fn from_event_code(code: &str) -> Option<RemoteKey> {
         "KeyH" => Some(RemoteKey::Home),
         "Equal" | "NumpadAdd" => Some(RemoteKey::VolumeUp),
         "Minus" | "NumpadSubtract" => Some(RemoteKey::VolumeDown),
+        "KeyM" => Some(RemoteKey::VolumeMute),
+        "BracketLeft" => Some(RemoteKey::Rewind),
+        "BracketRight" => Some(RemoteKey::FastForward),
         _ => None,
     }
 }
@@ -76,7 +88,10 @@ mod tests {
         assert_eq!(keycode(from_pad("home").unwrap()), 3);
         assert_eq!(keycode(from_pad("vol_up").unwrap()), 24);
         assert_eq!(keycode(from_pad("vol_down").unwrap()), 25);
+        assert_eq!(keycode(from_pad("mute").unwrap()), 164);
         assert_eq!(keycode(from_pad("power").unwrap()), 26);
+        assert_eq!(keycode(from_pad("rew").unwrap()), 89);
+        assert_eq!(keycode(from_pad("ff").unwrap()), 90);
     }
 
     #[test]
@@ -93,6 +108,9 @@ mod tests {
         assert_eq!(from_event_code("NumpadAdd"), from_pad("vol_up"));
         assert_eq!(from_event_code("Minus"), from_pad("vol_down"));
         assert_eq!(from_event_code("NumpadSubtract"), from_pad("vol_down"));
+        assert_eq!(from_event_code("KeyM"), from_pad("mute"));
+        assert_eq!(from_event_code("BracketLeft"), from_pad("rew"));
+        assert_eq!(from_event_code("BracketRight"), from_pad("ff"));
     }
 
     #[test]

@@ -44,33 +44,38 @@ Cópia do ram-bar / hid-tester:
 
 Android `input keyevent` (códigos AOSP):
 
-| Pad / teclado Mac             | Código | KeyEvent    |
-| ----------------------------- | ------ | ----------- |
-| ▲ / ArrowUp                   | 19     | DPAD_UP     |
-| ▼ / ArrowDown                 | 20     | DPAD_DOWN   |
-| ◀ / ArrowLeft                 | 21     | DPAD_LEFT   |
-| ▶ / ArrowRight                | 22     | DPAD_RIGHT  |
-| OK / Enter, NumpadEnter       | 23     | DPAD_CENTER |
-| Voltar / Escape               | 4      | BACK        |
-| Home / KeyH                   | 3      | HOME        |
-| Vol + / Equal, NumpadAdd      | 24     | VOLUME_UP   |
-| Vol − / Minus, NumpadSubtract | 25     | VOLUME_DOWN |
-| Power                         | 26     | POWER       |
+| Pad / teclado Mac             | Código | KeyEvent                                                            |
+| ----------------------------- | ------ | ------------------------------------------------------------------- |
+| ▲ / ArrowUp                   | 19     | DPAD_UP                                                             |
+| ▼ / ArrowDown                 | 20     | DPAD_DOWN                                                           |
+| ◀ / ArrowLeft                 | 21     | DPAD_LEFT                                                           |
+| ▶ / ArrowRight                | 22     | DPAD_RIGHT                                                          |
+| OK / Enter, NumpadEnter       | 23     | DPAD_CENTER                                                         |
+| Voltar / Escape               | 4      | BACK                                                                |
+| Home / KeyH                   | 3      | HOME                                                                |
+| Vol + / Equal, NumpadAdd      | 24     | VOLUME_UP                                                           |
+| Vol − / Minus, NumpadSubtract | 25     | VOLUME_DOWN                                                         |
+| Mudo / KeyM                   | 164    | VOLUME_MUTE                                                         |
+| Brilho − / Comma              | —      | PQ 0–100, passo −5 (`persist.vendor.brightness.main` + `testgamma`) |
+| Brilho + / Period             | —      | PQ 0–100, passo +5                                                  |
+| Power                         | 26     | POWER                                                               |
+| Tela off / Tela on            | —      | Lcd_en + Lcd_power 0/255 (`sh -c`). Não é KEYCODE_POWER.            |
 
-Outro `event.code` → ignora (não manda keyevent). Mapas duplicados em Rust e `web/js/keys.mjs` com os mesmos goldens.
+Outro `event.code` → ignora (não manda keyevent). Mapas duplicados em Rust e `web/js/keys.mjs` com os mesmos goldens. Brilho ± é `web/js/brightness.mjs` + `brightness.rs` (não é keyevent). Tela on/off é `web/js/lamp.mjs` + `lamp.rs` (GPIO, não keyevent).
 
 ## Preview
 
-- `adb -s {host} exec-out screencap -p` a cada 500 ms (2 fps)
+- `adb -s {host} exec-out screencap` (raw RGBA, sem `-p`) a cada 500 ms; PNG no Mac
 - PNG vira `data:image/png;base64,…` no `<img>`
+- `screencap -p` no HY300 leva 6–8s com vídeo ao vivo e estoura o timeout de 4s
 - Falha de um frame: mantém o último, status vira erro; o loop continua
 - Sem preview contínuo tipo scrcpy
 
 ## Toque
 
-Clique no preview mapeia para `input tap X Y` na resolução do frame (fallback 1280×720 se o PNG ainda não chegou).
+`pointerdown` (botão primário) no preview mapeia para `input tap X Y` na resolução do frame (fallback 1280×720 se o PNG ainda não chegou). `#preview-wrap` é um `div`; recarregar `img.src` a cada 500 ms cancela o evento `click`.
 
-O `<img>` usa `object-fit: contain`. Clique na faixa (letterbox) não manda tap.
+O `<img>` usa `object-fit: contain` e `pointer-events: none`. Clique na faixa (letterbox) não manda tap. Caixa do mapa: `tapTargetBox` (img pintado, wrap se o img ainda não tem tamanho).
 
 Fórmula: escala = min(elemW/screenW, elemH/screenH); conteúdo centrado; coordenadas no conteúdo × 1/escala; arredonda e satura em `[0, screenW-1]` × `[0, screenH-1]`.
 
@@ -85,21 +90,23 @@ Comandos:
 - `adb connect {host}`
 - `adb -s {host} shell input keyevent {code}`
 - `adb -s {host} shell input tap {x} {y}`
-- `adb -s {host} exec-out screencap -p`
+- `adb -s {host} exec-out screencap` (raw RGBA → PNG no Mac)
 
 Erro inclui o argv e o que o processo devolveu.
 
 ## UI
 
-Janela empilhada (~420×720, redimensionável):
+Janela empilhada (~720×980, redimensionável; min 520×760):
 
-1. Header: marca HY300 + status (`conectando…` / `ligado` / `sem conexão` / `falhou: …`)
-2. Preview 16:9, clique = toque
+1. Header: marca HY300 + status (`conectando…` / `ligado` / `desligado` / `sem conexão` / `falhou: …`). `desligado` = diálogo Android de energia (`LegacyGlobalActions`) em foco **ou** Lcd_power GPIO 0. ADB/screencap podem continuar.
+2. Preview 16:9 maior, `pointerdown` = toque
 3. D-pad + OK
 4. Voltar, Home, Power
-5. Vol − / Vol +
-6. Campo host + botão Salvar
-7. Dica: setas · Enter · Esc · H · +/−
+5. Vol − / Mudo / Vol +
+6. Brilho − / valor / Brilho +
+7. Tela off / Tela on (Lcd_en + Lcd_power; não é Power)
+8. Campo host + botão Salvar
+9. Dica: setas · Enter · Esc · H · +/− · M · [ ] · , . · roda no preview
 
 Pele do mockup: fundo `#141110`, pad `#2a2620`, OK `#c45c26`, texto `#f4efe6`. Fonte do sistema. Sem Google Fonts CDN.
 
@@ -118,6 +125,8 @@ Proibido: `adb` de verdade nos testes da CI.
 ```
 src-tauri/src/keys.rs      mapa pad/teclado → keycode
 src-tauri/src/tap.rs       clique → (x, y)
+src-tauri/src/lamp.rs      Tela on/off (Lcd_en / Lcd_power)
+src-tauri/src/power.rs     GlobalActions + combine com GPIO
 src-tauri/src/host.rs      default, parse, persist
 src-tauri/src/adb.rs       trait + argv + CLI
 src-tauri/src/preview.rs   intervalo, data URL
@@ -125,6 +134,7 @@ src-tauri/src/lib.rs
 src-tauri/src/main.rs      commands Tauri (feature desktop)
 web/js/keys.mjs            dual do mapa
 web/js/tap.mjs             dual do tap
+web/js/lamp.mjs            dual da lâmpada
 web/js/host.mjs            dual do parse
 web/js/app.js              invoke
 web/index.html

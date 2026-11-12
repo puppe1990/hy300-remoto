@@ -12,9 +12,9 @@
         <span class="brand">HY300</span>
         <span class="status" id="status">conectando…</span>
       </header>
-      <button type="button" class="preview-wrap" id="preview-wrap" aria-label="Tela do projetor">
-        <img id="preview" alt="" />
-      </button>
+      <div class="preview-wrap" id="preview-wrap" role="img" aria-label="Tela do projetor">
+        <img id="preview" alt="" draggable="false" />
+      </div>
       <div class="pad" role="group" aria-label="Controle">
         <div class="dpad">
           <span></span>
@@ -34,8 +34,26 @@
         </div>
         <div class="row vol">
           <button type="button" data-key="vol_down">Vol −</button>
-          <span class="hint">volume</span>
+          <button type="button" data-key="mute">Mudo</button>
           <button type="button" data-key="vol_up">Vol +</button>
+        </div>
+        <div class="row vol">
+          <button type="button" data-bright="bright_down">Brilho −</button>
+          <span class="hint" id="bright-val">—</span>
+          <button type="button" data-bright="bright_up">Brilho +</button>
+        </div>
+        <div class="row vol">
+          <button type="button" data-lamp="lamp_off">Tela off</button>
+          <span class="hint">tela</span>
+          <button type="button" data-lamp="lamp_on">Tela on</button>
+        </div>
+        <div class="row vol">
+          <button type="button" id="mouse-toggle" aria-pressed="false">Mouse</button>
+        </div>
+        <div class="row vol">
+          <button type="button" data-key="rew" aria-label="Voltar áudio">◀◀</button>
+          <span class="hint">áudio</span>
+          <button type="button" data-key="ff" aria-label="Avançar áudio">▶▶</button>
         </div>
       </div>
       <form class="host-row" id="host-form">
@@ -45,7 +63,9 @@
         </label>
         <button type="submit">Salvar</button>
       </form>
-      <p class="hint keys-hint">setas · Enter · Esc · H · +/−</p>
+      <p class="hint keys-hint">
+        setas · Enter · Esc · H · +/− · M · [ ] · , . · roda no preview · Mouse
+      </p>
     </main>
     <script type="module" src="./js/app.js"></script>
   </body>

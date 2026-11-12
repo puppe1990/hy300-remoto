@@ -16,6 +16,7 @@ test('status em português', () => {
   assert.equal(statusCopy('connecting'), 'conectando…')
   assert.equal(statusCopy('connected'), 'ligado')
   assert.equal(statusCopy('disconnected'), 'sem conexão')
+  assert.equal(statusCopy('off'), 'desligado')
   const detail = faker.lorem.words(3)
   const copy = statusCopy('error', detail)
   assert.ok(copy.startsWith('falhou: '))

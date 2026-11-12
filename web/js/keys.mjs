@@ -12,7 +12,10 @@ export const KEYCODES = {
   home: 3,
   vol_up: 24,
   vol_down: 25,
+  mute: 164,
   power: 26,
+  rew: 89,
+  ff: 90,
 }
 
 const EVENT_TO_PAD = {
@@ -28,6 +31,9 @@ const EVENT_TO_PAD = {
   NumpadAdd: 'vol_up',
   Minus: 'vol_down',
   NumpadSubtract: 'vol_down',
+  KeyM: 'mute',
+  BracketLeft: 'rew',
+  BracketRight: 'ff',
 }
 
 /**

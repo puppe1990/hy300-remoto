@@ -1,4 +1,4 @@
-//! Spawn `adb` with piped stdio. Video screencap is ~3.5s; kill at `SCREENCAP_TIMEOUT`.
+//! Spawn `adb` with piped stdio. Raw screencap is ~2.6s; kill at `SCREENCAP_TIMEOUT`.
 
 use super::AdbError;
 use std::io::Read;

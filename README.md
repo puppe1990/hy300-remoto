@@ -18,10 +18,19 @@ npm run dev
 
 `adb` precisa estar no PATH. Host padrão `192.168.15.4:3268`. Spec: `docs/superpowers/specs/2026-11-10-hy300-remoto-design.md`.
 
+DNS sinkhole da LAN Puppe (dnsmasq de fábrica no HY300): spec `docs/superpowers/specs/2026-11-10-hy300-dnssink-design.md`.
+
+```bash
+./scripts/dnssink/install.sh
+./scripts/dnssink/configure-mac-dns.sh   # Wi-Fi → 192.168.15.4 e 1.1.1.1
+./scripts/dnssink/update-hosts.sh
+./scripts/dnssink/uninstall.sh
+```
+
 ```
 Mac window (web/)
   preview 2 fps ──invoke──► AdbSession (main.rs)
-  D-pad / teclado              │
+  D-pad / teclado / brilho     │
                                ▼
                          CliAdb : AdbDevice
                                │
